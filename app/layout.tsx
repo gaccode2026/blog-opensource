@@ -34,7 +34,7 @@ const geistMono = localFont({
   fallback: ['SFMono-Regular', 'Consolas', 'Monaco', 'monospace'],
 })
 
-const SITE_NAME = 'ChatShare Blog'
+const SITE_NAME = 'ChatShare博客-关于chatshare合人工智能的一切！'
 const SITE_DESCRIPTION = 'ChatShare博客-关于chatshare合人工智能的一切！'
 const SITE_URL = getSiteUrl()
 const DEFAULT_SITE_OG_IMAGE = resolveDefaultSiteCoverImage(SITE_URL)
