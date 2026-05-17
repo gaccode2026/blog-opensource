@@ -38,6 +38,17 @@ for arg in "$@"; do
   esac
 done
 
+has_match() {
+  local pattern="$1"
+  local file="$2"
+
+  if command -v rg >/dev/null 2>&1; then
+    rg -q "${pattern}" "${file}"
+  else
+    grep -Eq "${pattern}" "${file}"
+  fi
+}
+
 section_has_key() {
   local section="$1"
   local key="$2"
@@ -86,7 +97,7 @@ strip_array_section() {
 cd "${REPO_ROOT}"
 
 if ! npx wrangler whoami >/dev/null 2>&1; then
-  echo "❌ 未登录 Cloudflare，请先运行: npx wrangler login"
+  echo "Cloudflare login required. Run: npx wrangler login" >&2
   exit 1
 fi
 
@@ -100,7 +111,7 @@ fi
 site_url_override="${SITE_URL}" perl -0pi -e 's/NEXT_PUBLIC_SITE_URL = ".*?"/NEXT_PUBLIC_SITE_URL = "$ENV{site_url_override}"/g' "${LOCAL_CONFIG_PATH}"
 
 if ! section_has_key "d1_databases" "database_id" "${LOCAL_CONFIG_PATH}"; then
-  if rg -q '^\[\[d1_databases\]\]' "${LOCAL_CONFIG_PATH}"; then
+  if has_match '^\[\[d1_databases\]\]' "${LOCAL_CONFIG_PATH}"; then
     strip_array_section "d1_databases" "${LOCAL_CONFIG_PATH}"
   fi
 
@@ -112,7 +123,7 @@ if ! section_has_key "d1_databases" "database_id" "${LOCAL_CONFIG_PATH}"; then
 fi
 
 if ! section_has_key "r2_buckets" "bucket_name" "${LOCAL_CONFIG_PATH}"; then
-  if rg -q '^\[\[r2_buckets\]\]' "${LOCAL_CONFIG_PATH}"; then
+  if has_match '^\[\[r2_buckets\]\]' "${LOCAL_CONFIG_PATH}"; then
     strip_array_section "r2_buckets" "${LOCAL_CONFIG_PATH}"
   fi
 
@@ -122,7 +133,7 @@ if ! section_has_key "r2_buckets" "bucket_name" "${LOCAL_CONFIG_PATH}"; then
     -c "${LOCAL_CONFIG_PATH}"
 fi
 
-if [[ "${WITH_KV}" == "1" ]] && ! rg -q '^\[\[kv_namespaces\]\]' "${LOCAL_CONFIG_PATH}"; then
+if [[ "${WITH_KV}" == "1" ]] && ! has_match '^\[\[kv_namespaces\]\]' "${LOCAL_CONFIG_PATH}"; then
   npx wrangler kv namespace create "${KV_NAME}" \
     --binding CACHE \
     --update-config \
@@ -142,19 +153,17 @@ if [[ -f "${SEED_TEMPLATE_PATH}" ]]; then
 fi
 
 cat <<EOF
-✅ Cloudflare 基础资源初始化完成
-
-当前配置文件:
+Cloudflare resource initialization complete.
+Current config:
   ${LOCAL_CONFIG_PATH}
 
-下一步:
-  1. 配置本地环境变量: cp .env.example .env.local
-  2. 设置线上 secrets:
+Next steps:
+  1. Prepare local env vars: cp .env.example .env.local
+  2. Set production secrets:
      npx wrangler secret put ADMIN_PASSWORD -c ${LOCAL_CONFIG_PATH}
      npx wrangler secret put ADMIN_TOKEN_SALT -c ${LOCAL_CONFIG_PATH}
      npx wrangler secret put AI_CONFIG_ENCRYPTION_SECRET -c ${LOCAL_CONFIG_PATH}
-     npx wrangler secret put AI_API_KEY -c ${LOCAL_CONFIG_PATH}   # 如果你要启用 AI
-  3. 首次初始化已写入默认主题、字体和导航
-  4. 生成类型: npm run cf-typegen
-  5. 部署: npm run deploy
+     npx wrangler secret put AI_API_KEY -c ${LOCAL_CONFIG_PATH}   # optional
+  3. Generate types: npm run cf-typegen
+  4. Deploy: npm run deploy
 EOF
