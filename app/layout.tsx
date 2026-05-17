@@ -37,6 +37,8 @@ const geistMono = localFont({
 const SITE_URL = getSiteUrl()
 const DEFAULT_SITE_OG_IMAGE = resolveDefaultSiteCoverImage(SITE_URL)
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   metadataBase: getSiteUrlObject(),
   title: {

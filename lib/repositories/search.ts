@@ -1,4 +1,5 @@
 import { mapPostWithTags } from '@/lib/repositories/post-mappers'
+import { ensureSchema } from '@/lib/repositories/schema'
 import type { Database } from '@/lib/repositories/schema'
 import type { Post, PostWithTags } from '@/lib/repositories/types'
 
@@ -12,6 +13,7 @@ export async function searchPosts(
   includeHidden = false,
   includeDeleted = false,
 ): Promise<PostWithTags[]> {
+  await ensureSchema(db)
   let results: Post[]
 
   const conditions: string[] = []

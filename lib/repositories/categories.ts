@@ -1,8 +1,10 @@
 import type { Database } from '@/lib/repositories/schema'
+import { ensureSchema } from '@/lib/repositories/schema'
 import type { CategoryRow } from '@/lib/repositories/types'
 
 // 获取所有分类
 export async function getCategories(db: Database): Promise<CategoryRow[]> {
+  await ensureSchema(db)
   const { results } = await db
     .prepare('SELECT name, slug, post_count FROM categories ORDER BY name')
     .all<CategoryRow>()
@@ -11,6 +13,7 @@ export async function getCategories(db: Database): Promise<CategoryRow[]> {
 }
 
 export async function getPublicCategories(db: Database): Promise<CategoryRow[]> {
+  await ensureSchema(db)
   const { results } = await db
     .prepare(
       `SELECT categories.name, categories.slug, COUNT(posts.id) as post_count
