@@ -1,5 +1,5 @@
 import { mapPostWithTags } from '@/lib/repositories/post-mappers'
-import { ensureSchema } from '@/lib/repositories/schema'
+import { ensureSchema, isFtsCorruptionError, rebuildPostsFts } from '@/lib/repositories/schema'
 import type { Database } from '@/lib/repositories/schema'
 import type { Post, PostWithTags } from '@/lib/repositories/types'
 
@@ -36,19 +36,36 @@ export async function searchPosts(
       .bind(query, limit)
       .all<Post>()
     results = ftsResult.results
-  } catch {
-    const pattern = `%${query}%`
-    const likeResult = await db
-      .prepare(
-        `SELECT * FROM posts
-         WHERE (title LIKE ? OR content LIKE ?)
-         ${whereClause}
-         ORDER BY published_at DESC
-         LIMIT ?`,
-      )
-      .bind(pattern, pattern, limit)
-      .all<Post>()
-    results = likeResult.results
+  } catch (error) {
+    if (isFtsCorruptionError(error)) {
+      await rebuildPostsFts(db)
+
+      const repairedFtsResult = await db
+        .prepare(
+          `SELECT posts.* FROM posts_fts
+           JOIN posts ON posts.id = posts_fts.rowid
+           WHERE posts_fts MATCH ?
+           ${whereClause}
+           ORDER BY rank
+           LIMIT ?`,
+        )
+        .bind(query, limit)
+        .all<Post>()
+      results = repairedFtsResult.results
+    } else {
+      const pattern = `%${query}%`
+      const likeResult = await db
+        .prepare(
+          `SELECT * FROM posts
+           WHERE (title LIKE ? OR content LIKE ?)
+           ${whereClause}
+           ORDER BY published_at DESC
+           LIMIT ?`,
+        )
+        .bind(pattern, pattern, limit)
+        .all<Post>()
+      results = likeResult.results
+    }
   }
 
   return results.map(mapPostWithTags)

@@ -7,6 +7,29 @@ export function getDB(env: CloudflareEnv) {
 
 let schemaInitialized = false
 let schemaInitializationPromise: Promise<void> | null = null
+let postsFtsRepairPromise: Promise<void> | null = null
+
+const postsFtsTableSql = `CREATE VIRTUAL TABLE IF NOT EXISTS posts_fts USING fts5(
+  title,
+  content,
+  content=posts,
+  content_rowid=id,
+  tokenize='unicode61'
+)`
+
+const postsFtsTriggerSql = [
+  `CREATE TRIGGER IF NOT EXISTS posts_ai AFTER INSERT ON posts BEGIN
+    INSERT INTO posts_fts(rowid, title, content)
+    VALUES (new.id, new.title, new.content);
+  END`,
+  `CREATE TRIGGER IF NOT EXISTS posts_au AFTER UPDATE ON posts BEGIN
+    UPDATE posts_fts SET title = new.title, content = new.content
+    WHERE rowid = new.id;
+  END`,
+  `CREATE TRIGGER IF NOT EXISTS posts_ad AFTER DELETE ON posts BEGIN
+    DELETE FROM posts_fts WHERE rowid = old.id;
+  END`,
+]
 
 const schemaStatements = [
   `CREATE TABLE IF NOT EXISTS posts (
@@ -31,24 +54,8 @@ const schemaStatements = [
   'CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug)',
   'CREATE INDEX IF NOT EXISTS idx_posts_category ON posts(category)',
   'CREATE INDEX IF NOT EXISTS idx_posts_published ON posts(published_at DESC)',
-  `CREATE VIRTUAL TABLE IF NOT EXISTS posts_fts USING fts5(
-    title,
-    content,
-    content=posts,
-    content_rowid=id,
-    tokenize='unicode61'
-  )`,
-  `CREATE TRIGGER IF NOT EXISTS posts_ai AFTER INSERT ON posts BEGIN
-    INSERT INTO posts_fts(rowid, title, content)
-    VALUES (new.id, new.title, new.content);
-  END`,
-  `CREATE TRIGGER IF NOT EXISTS posts_au AFTER UPDATE ON posts BEGIN
-    UPDATE posts_fts SET title = new.title, content = new.content
-    WHERE rowid = new.id;
-  END`,
-  `CREATE TRIGGER IF NOT EXISTS posts_ad AFTER DELETE ON posts BEGIN
-    DELETE FROM posts_fts WHERE rowid = old.id;
-  END`,
+  postsFtsTableSql,
+  ...postsFtsTriggerSql,
   `CREATE TABLE IF NOT EXISTS categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE NOT NULL,
@@ -147,6 +154,51 @@ const bestEffortStatements = [
      WHERE posts_fts.rowid = posts.id
    )`,
 ]
+
+export function isFtsCorruptionError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  const message = error.message.toLowerCase()
+  return (
+    message.includes('sqlite_corrupt_vtab') ||
+    message.includes('database disk image is malformed') ||
+    message.includes('sqlite_corrupt') ||
+    message.includes('posts_fts')
+  )
+}
+
+export async function rebuildPostsFts(db: Database): Promise<void> {
+  if (postsFtsRepairPromise) {
+    await postsFtsRepairPromise
+    return
+  }
+
+  postsFtsRepairPromise = (async () => {
+    console.warn('Detected corrupted posts_fts virtual table, rebuilding FTS index')
+
+    await db.prepare('DROP TRIGGER IF EXISTS posts_ai').run()
+    await db.prepare('DROP TRIGGER IF EXISTS posts_au').run()
+    await db.prepare('DROP TRIGGER IF EXISTS posts_ad').run()
+    await db.prepare('DROP TABLE IF EXISTS posts_fts').run()
+
+    await db.prepare(postsFtsTableSql).run()
+
+    for (const sql of postsFtsTriggerSql) {
+      await db.prepare(sql).run()
+    }
+
+    await db.prepare(
+      `INSERT INTO posts_fts(rowid, title, content)
+       SELECT id, title, content
+       FROM posts`,
+    ).run()
+  })()
+
+  try {
+    await postsFtsRepairPromise
+  } finally {
+    postsFtsRepairPromise = null
+  }
+}
 
 export async function ensureSchema(db: Database) {
   if (schemaInitialized) return

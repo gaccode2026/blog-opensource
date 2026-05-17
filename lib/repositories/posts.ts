@@ -1,6 +1,11 @@
 import { getCacheKey } from '@/lib/cache'
 import { mapPostWithTags, parsePostTags } from '@/lib/repositories/post-mappers'
-import { ensureSchema, type Database } from '@/lib/repositories/schema'
+import {
+  ensureSchema,
+  isFtsCorruptionError,
+  rebuildPostsFts,
+  type Database,
+} from '@/lib/repositories/schema'
 import type {
   CountRow,
   Post,
@@ -9,6 +14,19 @@ import type {
   PostWithTags,
   StatsRow,
 } from '@/lib/repositories/types'
+
+async function runWithFtsRetry<T>(db: Database, operation: () => Promise<T>): Promise<T> {
+  try {
+    return await operation()
+  } catch (error) {
+    if (!isFtsCorruptionError(error)) {
+      throw error
+    }
+
+    await rebuildPostsFts(db)
+    return await operation()
+  }
+}
 
 // 获取文章列表（默认只返回已发布文章）
 export async function getPosts(
@@ -136,25 +154,27 @@ export async function createPost(
   await ensureSchema(db)
   const category = data.category || '未分类'
 
-  const result = await db
-    .prepare(
-      `INSERT INTO posts (slug, title, content, html, description, category, tags, status, password, is_hidden, cover_image)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    )
-    .bind(
-      data.slug,
-      data.title,
-      data.content,
-      data.html,
-      data.description || null,
-      category,
-      data.tags ? JSON.stringify(data.tags) : null,
-      data.status || 'published',
-      data.password ?? null,
-      data.is_hidden ?? 0,
-      data.cover_image ?? null,
-    )
-    .run()
+  const result = await runWithFtsRetry(db, async () =>
+    db
+      .prepare(
+        `INSERT INTO posts (slug, title, content, html, description, category, tags, status, password, is_hidden, cover_image)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        data.slug,
+        data.title,
+        data.content,
+        data.html,
+        data.description || null,
+        category,
+        data.tags ? JSON.stringify(data.tags) : null,
+        data.status || 'published',
+        data.password ?? null,
+        data.is_hidden ?? 0,
+        data.cover_image ?? null,
+      )
+      .run(),
+  )
 
   await db
     .prepare(
@@ -293,10 +313,12 @@ export async function updatePost(
   updates.push("updated_at = strftime('%s', 'now')")
   values.push(id)
 
-  await db
-    .prepare(`UPDATE posts SET ${updates.join(', ')} WHERE id = ?`)
-    .bind(...values)
-    .run()
+  await runWithFtsRetry(db, async () =>
+    db
+      .prepare(`UPDATE posts SET ${updates.join(', ')} WHERE id = ?`)
+      .bind(...values)
+      .run(),
+  )
 
   if (data.category !== undefined && oldCategory !== null && oldCategory !== data.category) {
     await db
@@ -325,7 +347,9 @@ export async function deletePost(db: Database, slug: string): Promise<void> {
     .bind(slug)
     .first<PostCategoryRow>()
 
-  await db.prepare('DELETE FROM posts WHERE slug = ?').bind(slug).run()
+  await runWithFtsRetry(db, async () =>
+    db.prepare('DELETE FROM posts WHERE slug = ?').bind(slug).run(),
+  )
 
   if (post?.category) {
     await db
@@ -430,7 +454,9 @@ export async function permanentlyDeletePost(db: Database, slug: string): Promise
     .bind(slug)
     .first<PostCategoryRow>()
 
-  await db.prepare('DELETE FROM posts WHERE slug = ?').bind(slug).run()
+  await runWithFtsRetry(db, async () =>
+    db.prepare('DELETE FROM posts WHERE slug = ?').bind(slug).run(),
+  )
 
   if (post?.category) {
     await db
