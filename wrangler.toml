@@ -16,7 +16,7 @@ remote = true
 
 [[services]]
 binding = "WORKER_SELF_REFERENCE"
-service = "qiaomu-blog-opensource"
+service = "blog-opensources"
 
 # Minimal resource bindings for open-source / Deploy to Cloudflare usage.
 # Modern Wrangler and Deploy buttons can auto-provision these resources.
