@@ -21,8 +21,8 @@ interface SiteHeaderProps {
 const SITE_NAME = 'ChatShare博客'
 
 const defaultNavLinks: NavLink[] = [
-  { label: 'GitHub', url: 'https://github.com/joeseesun/', openInNewTab: true },
-  { label: 'Twitter', url: 'https://x.com/vista8/', openInNewTab: true },
+  { label: '订阅', url: 'https://fcai.me/chatshare', openInNewTab: true },
+  { label: '激活码', url: 'chatshare.top', openInNewTab: true },
   { label: 'RSS', url: '/feed.xml', openInNewTab: false },
 ]
 
