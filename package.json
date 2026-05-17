@@ -20,7 +20,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@opennextjs/cloudflare": "^1.19.1",
+    "@opennextjs/cloudflare": "^1.19.4",
     "@tiptap/core": "^3.22.3",
     "@tiptap/extension-image": "^3.22.3",
     "@tiptap/extension-table": "^3.22.3",
