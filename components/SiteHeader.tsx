@@ -18,6 +18,8 @@ interface SiteHeaderProps {
   initialTheme?: Theme
 }
 
+const SITE_NAME = 'ChatShare博客'
+
 const defaultNavLinks: NavLink[] = [
   { label: 'GitHub', url: 'https://github.com/joeseesun/', openInNewTab: true },
   { label: 'Twitter', url: 'https://x.com/vista8/', openInNewTab: true },
@@ -46,7 +48,6 @@ export function SiteHeader({
     () => initialTheme,
   )
 
-  // 点击外部关闭分类下拉
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) {
@@ -56,10 +57,11 @@ export function SiteHeader({
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
-  const activeCategory = categories.find(c => c.slug === activeCategorySlug)
+
+  const activeCategory = categories.find((c) => c.slug === activeCategorySlug)
 
   const renderLink = (link: NavLink, onClick?: () => void) => {
-    const className = "text-[var(--editor-muted)] hover:text-[var(--editor-ink)] transition-colors duration-150"
+    const className = 'text-[var(--editor-muted)] hover:text-[var(--editor-ink)] transition-colors duration-150'
 
     if (link.openInNewTab || link.url.startsWith('http')) {
       return (
@@ -88,7 +90,6 @@ export function SiteHeader({
     )
   }
 
-  // 终端主题：logo 区域显示终端提示符
   const renderLogo = () => {
     if (theme === 'terminal') {
       return (
@@ -99,7 +100,7 @@ export function SiteHeader({
           suppressHydrationWarning
         >
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ade80', display: 'inline-block', boxShadow: '0 0 8px #4ade80', flexShrink: 0 }} />
-          <span style={{ color: 'var(--editor-muted)' }}>qiaomu@blog:~$</span>
+          <span style={{ color: 'var(--editor-muted)' }}>chatshare@blog:~$</span>
           <span style={{ color: 'var(--editor-ink)' }}>./home</span>
         </Link>
       )
@@ -114,10 +115,10 @@ export function SiteHeader({
             className="text-lg tracking-tight text-[var(--editor-ink)] hover:text-[var(--editor-accent)] transition-colors duration-200 font-bold"
             style={{ fontFamily: 'var(--logo-font, "Noto Serif SC", Georgia, serif)' }}
           >
-            乔木博客
+            {SITE_NAME}
           </Link>
           <span style={{ fontFamily: '"JetBrains Mono", ui-monospace, monospace', fontSize: 11, letterSpacing: '0.15em', color: 'var(--editor-muted)' }}>
-            VOL.{vol} · {year}年{month}月
+            VOL.{vol} · {year}.{month}
           </span>
         </div>
       )
@@ -129,7 +130,7 @@ export function SiteHeader({
         className="text-lg tracking-tight text-[var(--editor-ink)] hover:text-[var(--editor-accent)] transition-colors duration-200 flex-shrink-0 font-bold"
         style={{ fontFamily: 'var(--logo-font, Georgia, "Noto Serif SC", serif)' }}
       >
-        乔木博客
+        {SITE_NAME}
       </Link>
     )
   }
@@ -140,9 +141,7 @@ export function SiteHeader({
         <div className="h-14 flex items-center justify-between gap-4">
           {renderLogo()}
 
-          {/* Desktop nav */}
           <nav className="hidden sm:flex items-center gap-3 text-sm flex-shrink-0">
-            {/* Category dropdown */}
             {categories.length > 0 && (
               <div ref={categoryRef} className="relative">
                 <button
@@ -170,7 +169,7 @@ export function SiteHeader({
                     >
                       全部文章
                     </Link>
-                    {categories.map(cat => (
+                    {categories.map((cat) => (
                       <Link
                         key={cat.slug}
                         href={`/category/${cat.slug}`}
@@ -189,12 +188,11 @@ export function SiteHeader({
               </div>
             )}
 
-            {links.map(link => renderLink(link))}
+            {links.map((link) => renderLink(link))}
             <ThemeDropdown initialTheme={initialTheme} />
             <SearchEntry />
           </nav>
 
-          {/* Mobile: search icon + hamburger */}
           <div className="sm:hidden flex items-center gap-1">
             <SearchEntry />
             <button
@@ -208,7 +206,6 @@ export function SiteHeader({
         </div>
       </div>
 
-      {/* Mobile dropdown menu */}
       <div
         className={`
           sm:hidden transition-all duration-300 ease-in-out
@@ -216,7 +213,6 @@ export function SiteHeader({
         `}
       >
         <div className="bg-[var(--background)]">
-          {/* Mobile categories as horizontal pills */}
           {categories.length > 0 && (
             <div className="px-4 py-3 border-b border-[var(--editor-line)]">
               <div className="flex flex-wrap gap-2">
@@ -250,7 +246,7 @@ export function SiteHeader({
           )}
 
           <nav className="flex flex-col text-sm">
-            {links.map(link => (
+            {links.map((link) => (
               <div key={link.label} className="px-4 py-3 border-b border-[var(--editor-line)]">
                 {renderLink(link, () => setMobileMenuOpen(false))}
               </div>

@@ -2,8 +2,8 @@ import { getAppCloudflareEnv } from '@/lib/cloudflare'
 import { getSiteUrl } from '@/lib/site-config'
 
 const SITE_URL = getSiteUrl()
-const SITE_TITLE = '乔木博客'
-const SITE_DESCRIPTION = '记录思考，分享所学，留住当下。'
+const SITE_TITLE = 'ChatShare博客'
+const SITE_DESCRIPTION = 'ChatShare 博客，分享想法、记录灵感与沉淀内容。'
 
 interface RssPost {
   slug: string
@@ -29,7 +29,6 @@ export async function GET() {
   try {
     const env = await getAppCloudflareEnv()
     if (env?.DB) {
-      // RSS needs html field; query directly to include it
       const { results } = await env.DB
         .prepare(
           `SELECT slug, title, description, html, category, published_at
@@ -41,9 +40,7 @@ export async function GET() {
         .all()
       posts = results as unknown as RssPost[]
     }
-  } catch {
-    // ignore
-  }
+  } catch {}
 
   const items = posts
     .map((p) => {

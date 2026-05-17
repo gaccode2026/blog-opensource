@@ -1,39 +1,41 @@
-import type { Metadata } from "next";
-import localFont from "next/font/local";
-import "./globals.css";
-import { GlobalShortcuts } from "@/components/GlobalShortcuts";
-import { ToastProvider } from "@/components/Toast";
-import { CustomJsInjector } from "@/components/CustomJsInjector";
-import { FONT_CONFIG, THEME_OPTIONS, THEME_STORAGE_KEY, normalizeTheme } from "@/lib/appearance";
-import { getAppCloudflareEnv } from "@/lib/cloudflare";
-import { getSetting } from "@/lib/db";
-import { resolveDefaultSiteCoverImage } from "@/lib/default-cover-images";
-import { getSiteUrl, getSiteUrlObject } from "@/lib/site-config";
+import type { Metadata } from 'next'
+import localFont from 'next/font/local'
+import './globals.css'
+import { GlobalShortcuts } from '@/components/GlobalShortcuts'
+import { ToastProvider } from '@/components/Toast'
+import { CustomJsInjector } from '@/components/CustomJsInjector'
+import { FONT_CONFIG, THEME_OPTIONS, THEME_STORAGE_KEY, normalizeTheme } from '@/lib/appearance'
+import { getAppCloudflareEnv } from '@/lib/cloudflare'
+import { getSetting } from '@/lib/db'
+import { resolveDefaultSiteCoverImage } from '@/lib/default-cover-images'
+import { getSiteUrl, getSiteUrlObject } from '@/lib/site-config'
 
 const geistSans = localFont({
   src: [
-    { path: "./fonts/geist/Geist-Regular.ttf", weight: "400", style: "normal" },
-    { path: "./fonts/geist/Geist-Medium.ttf", weight: "500", style: "normal" },
-    { path: "./fonts/geist/Geist-SemiBold.ttf", weight: "600", style: "normal" },
-    { path: "./fonts/geist/Geist-Bold.ttf", weight: "700", style: "normal" },
+    { path: './fonts/geist/Geist-Regular.ttf', weight: '400', style: 'normal' },
+    { path: './fonts/geist/Geist-Medium.ttf', weight: '500', style: 'normal' },
+    { path: './fonts/geist/Geist-SemiBold.ttf', weight: '600', style: 'normal' },
+    { path: './fonts/geist/Geist-Bold.ttf', weight: '700', style: 'normal' },
   ],
-  variable: "--font-geist-sans",
-  display: "swap",
-  fallback: ["system-ui", "Arial", "Helvetica", "sans-serif"],
-});
+  variable: '--font-geist-sans',
+  display: 'swap',
+  fallback: ['system-ui', 'Arial', 'Helvetica', 'sans-serif'],
+})
 
 const geistMono = localFont({
   src: [
-    { path: "./fonts/geist/GeistMono-Regular.ttf", weight: "400", style: "normal" },
-    { path: "./fonts/geist/GeistMono-Medium.ttf", weight: "500", style: "normal" },
-    { path: "./fonts/geist/GeistMono-SemiBold.ttf", weight: "600", style: "normal" },
-    { path: "./fonts/geist/GeistMono-Bold.ttf", weight: "700", style: "normal" },
+    { path: './fonts/geist/GeistMono-Regular.ttf', weight: '400', style: 'normal' },
+    { path: './fonts/geist/GeistMono-Medium.ttf', weight: '500', style: 'normal' },
+    { path: './fonts/geist/GeistMono-SemiBold.ttf', weight: '600', style: 'normal' },
+    { path: './fonts/geist/GeistMono-Bold.ttf', weight: '700', style: 'normal' },
   ],
-  variable: "--font-geist-mono",
-  display: "swap",
-  fallback: ["SFMono-Regular", "Consolas", "Monaco", "monospace"],
-});
+  variable: '--font-geist-mono',
+  display: 'swap',
+  fallback: ['SFMono-Regular', 'Consolas', 'Monaco', 'monospace'],
+})
 
+const SITE_NAME = 'ChatShare博客'
+const SITE_DESCRIPTION = 'ChatShare 博客，分享想法、记录灵感与沉淀内容。'
 const SITE_URL = getSiteUrl()
 const DEFAULT_SITE_OG_IMAGE = resolveDefaultSiteCoverImage(SITE_URL)
 
@@ -42,10 +44,10 @@ export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
   metadataBase: getSiteUrlObject(),
   title: {
-    default: '乔木博客',
-    template: '%s · 乔木博客',
+    default: SITE_NAME,
+    template: `%s · ${SITE_NAME}`,
   },
-  description: '记录思考，分享所学，留住当下。技术、生活、读书笔记的数字花园。',
+  description: SITE_DESCRIPTION,
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
@@ -66,15 +68,15 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'zh_CN',
     url: SITE_URL,
-    siteName: '乔木博客',
-    title: '乔木博客',
-    description: '记录思考，分享所学，留住当下。技术、生活、读书笔记的数字花园。',
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
     images: [
       {
         url: DEFAULT_SITE_OG_IMAGE,
         width: 1280,
         height: 720,
-        alt: '乔木博客',
+        alt: SITE_NAME,
       },
     ],
   },
@@ -82,16 +84,16 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@vista8',
     creator: '@vista8',
-    title: '乔木博客',
-    description: '记录思考，分享所学，留住当下。技术、生活、读书笔记的数字花园。',
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
     images: [DEFAULT_SITE_OG_IMAGE],
   },
-};
+}
 
 export default async function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   let customJs = ''
   let bodyFont = ''
@@ -178,5 +180,5 @@ export default async function RootLayout({
         {customJs && <CustomJsInjector code={customJs} />}
       </body>
     </html>
-  );
+  )
 }

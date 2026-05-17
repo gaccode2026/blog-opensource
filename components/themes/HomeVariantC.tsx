@@ -55,7 +55,7 @@ function TerminalHeader({
       {/* Left: terminal prompt */}
       <div className="terminal-home-prompt" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <span style={{ width: 10, height: 10, borderRadius: '50%', background: ACCENT, display: 'inline-block', boxShadow: `0 0 10px ${ACCENT}` }} />
-        <Link href="/" style={{ color: MUTED, textDecoration: 'none' }}>qiaomu@blog:~$</Link>
+        <Link href="/" style={{ color: MUTED, textDecoration: 'none' }}>chatshare@blog:~$</Link>
         <span style={{ color: FG }}>./serve --port=443</span>
       </div>
 
@@ -174,13 +174,13 @@ export function HomeVariantC({
             overflow: 'hidden',
           }}>
 {`  ┌────────────────────────────────────┐
-  │  QIAOMU BLOG  ·  乔木博客          │
+  │  CHATSHARE BLOG · ChatShare博客    │
   │  ~/posts  —  reading the future     │
   └────────────────────────────────────┘`}
           </div>
           <div className="terminal-banner-meta" style={{ marginTop: 14, fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ color: ACCENT2 }}>&gt;</span>
-            <span style={{ color: FG }}>乔木博客</span>
+            <span style={{ color: FG }}>ChatShare博客</span>
             <span style={{ color: MUTED }}>{'//'}</span>
             <span style={{ color: MUTED }}>
               {typed}

@@ -29,7 +29,6 @@ function AdminLoginForm() {
 
       if (res.ok) {
         const redirectTo = searchParams.get('redirect_to') || '/admin'
-        // 安全检查：只允许跳转到本站路径
         const safePath = redirectTo.startsWith('/') ? redirectTo : '/admin'
         router.push(safePath)
         router.refresh()
@@ -52,16 +51,14 @@ function AdminLoginForm() {
   return (
     <div className="min-h-screen bg-[var(--editor-app-bg)] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#1f6f59] text-white text-xl font-bold mb-4">
-            乔
+            C
           </div>
-          <h1 className="text-2xl font-bold text-[var(--editor-ink)]">乔木博客</h1>
+          <h1 className="text-2xl font-bold text-[var(--editor-ink)]">ChatShare博客</h1>
           <p className="text-sm text-[var(--editor-muted)] mt-1">管理后台</p>
         </div>
 
-        {/* 登录表单 */}
         <div className="bg-[var(--editor-panel)] rounded-2xl border border-[var(--editor-line)] shadow-[0_8px_28px_rgba(37,32,24,0.08)] p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
@@ -104,7 +101,7 @@ function AdminLoginForm() {
 
         <p className="text-center mt-6 text-xs text-[var(--editor-muted)]">
           <Link href="/" className="hover:text-[var(--editor-ink)] transition-colors">
-            ← 返回博客首页
+            → 返回博客首页
           </Link>
         </p>
       </div>

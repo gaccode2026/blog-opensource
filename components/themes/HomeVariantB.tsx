@@ -126,7 +126,7 @@ export function HomeVariantB({
             fontFamily: '"Noto Serif SC", "Source Han Serif SC", Georgia, serif',
             color: FG,
           }}>
-            乔木<span style={{ color: ACCENT }}>·</span>博客
+            ChatShare<span style={{ color: ACCENT }}>·</span>博客
           </h1>
         </Link>
         <div className="editorial-masthead-meta" style={{
@@ -361,7 +361,7 @@ export function HomeVariantB({
         fontFamily: '"JetBrains Mono", ui-monospace, monospace',
         letterSpacing: '0.1em',
       }}>
-        <span>© {new Date().getFullYear()} 乔木博客</span>
+        <span>© {new Date().getFullYear()} ChatShare博客</span>
         <span>独立 · 不商业化 · RSS 友好</span>
       </div>
 
