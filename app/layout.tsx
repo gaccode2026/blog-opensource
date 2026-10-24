@@ -48,6 +48,9 @@ export const metadata: Metadata = {
     template: `%s · ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
+  other: {
+  'baidu-site-verification': 'codeva-pdW3tQbPpC',
+  },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
